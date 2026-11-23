@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batch cooking des mamans</title>
+  <style>
+    :root {
+      --fond: #fdf8f4;
+      --carte: #ffffff;
+      --texte: #2d2a32;
+      --accent: #e07a5f;
+      --accent-doux: #f4d9cf;
+      --vert: #3d8b5f;
+      --gris: #6b6670;
+      --bord: #eadfd8;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fond: #1f1c22; --carte: #2a262e; --texte: #f3eef0;
+        --accent: #f09a82; --accent-doux: #3a2f2c; --vert: #6cc08f;
+        --gris: #aaa3ad; --bord: #3d3740;
+      }
+    }
+    :root[data-theme="dark"] {
+      --fond: #1f1c22; --carte: #2a262e; --texte: #f3eef0;
+      --accent: #f09a82; --accent-doux: #3a2f2c; --vert: #6cc08f;
+      --gris: #aaa3ad; --bord: #3d3740;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--fond); color: var(--texte); line-height: 1.5;
+    }
+    header { padding: 16px; background: var(--accent); color: #fff; }
+    header h1 { margin: 0; font-size: 1.3rem; }
+    main { max-width: 760px; margin: 0 auto; padding: 16px; }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    nav button {
+      flex: 1 1 auto; padding: 10px; border: 1px solid var(--bord); border-radius: 10px;
+      background: var(--carte); color: var(--texte); font-size: 0.95rem; cursor: pointer;
+    }
+    nav button.actif { background: var(--accent); color: #fff; border-color: var(--accent); }
+    section.carte {
+      background: var(--carte); border: 1px solid var(--bord); border-radius: 14px;
+      padding: 16px; margin-bottom: 16px;
+    }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; }
+    h3 { font-size: 1rem; margin: 12px 0 6px; }
+    label { display: block; font-size: 0.9rem; margin: 8px 0 4px; color: var(--gris); }
+    input, select {
+      width: 100%; padding: 10px; border: 1px solid var(--bord); border-radius: 8px;
+      background: var(--fond); color: var(--texte); font-size: 1rem;
+    }
+    .ligne { display: flex; gap: 8px; }
+    .ligne > * { flex: 1; }
+    .checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; }
+    .checks label { display: flex; align-items: center; gap: 6px; color: var(--texte); margin: 0; }
+    .checks input { width: auto; }
+    button.principal {
+      padding: 12px 16px; border: none; border-radius: 10px; background: var(--accent);
+      color: #fff; font-size: 1rem; cursor: pointer; width: 100%; margin-top: 8px;
+    }
+    button.petit {
+      padding: 6px 10px; border: 1px solid var(--bord); border-radius: 8px;
+      background: transparent; color: var(--texte); cursor: pointer;
+    }
+    .liste { list-style: none; padding: 0; margin: 0; }
+    .liste li {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      padding: 8px 0; border-bottom: 1px solid var(--bord);
+    }
+    .badge {
+      display: inline-block; font-size: 0.78rem; padding: 2px 8px; border-radius: 999px;
+      background: var(--accent-doux); color: var(--texte); margin: 2px 4px 2px 0;
+    }
+    .ok { color: var(--vert); }
+    .alerte { color: var(--accent); font-weight: 600; }
+    .vide { color: var(--gris); font-style: italic; }
+    .recette { border-top: 1px solid var(--bord); padding-top: 12px; margin-top: 12px; }
+    ol, ul.ingredients { padding-left: 20px; }
+    .discret { color: var(--gris); font-size: 0.85rem; }
+    @media (max-width: 480px) { .ligne { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header><h1>Batch cooking de la semaine</h1></header>
+  <main>
+    <nav>
+      <button data-onglet="foyer" class="actif">1. Foyer</button>
+      <button data-onglet="frigo">2. Frigo</button>
+      <button data-onglet="plan">3. Mon plan</button>
+    </nav>
+
+    <!-- FOYER -->
+    <section id="onglet-foyer" class="carte">
+      <h2>Les personnes du foyer</h2>
+      <form id="form-membre">
+        <div class="ligne">
+          <div>
+            <label for="membre-nom">Prénom</label>
+            <input id="membre-nom" required maxlength="30" placeholder="Ex : Léo">
+          </div>
+          <div>
+            <label for="membre-age">Tranche d'âge</label>
+            <select id="membre-age">
+              <option value="bebe">Bébé (0-3 ans)</option>
+              <option value="enfant">Enfant (3-12 ans)</option>
+              <option value="ado">Ado (13-17 ans)</option>
+              <option value="adulte" selected>Adulte (18+)</option>
+            </select>
+          </div>
+        </div>
+        <label>Intolérances / allergies</label>
+        <div class="checks" id="membre-allergies"></div>
+        <button class="principal" type="submit">Ajouter à la famille</button>
+      </form>
+      <h3>Membres</h3>
+      <ul class="liste" id="liste-membres"></ul>
+    </section>
+
+    <!-- FRIGO -->
+    <section id="onglet-frigo" class="carte" hidden>
+      <h2>Ce que j'ai dans le frigo et le placard</h2>
+      <form id="form-ingredient">
+        <div class="ligne">
+          <div>
+            <label for="ing-nom">Ingrédient</label>
+            <input id="ing-nom" required maxlength="40" list="suggestions" placeholder="Ex : oignon">
+            <datalist id="suggestions"></datalist>
+          </div>
+        </div>
+        <button class="principal" type="submit">Ajouter au frigo</button>
+      </form>
+      <h3>Disponible</h3>
+      <ul class="liste" id="liste-frigo"></ul>
+    </section>
+
+    <!-- PLAN -->
+    <section id="onglet-plan" class="carte" hidden>
+      <h2>Préparer la semaine</h2>
+      <div class="ligne">
+        <div>
+          <label for="nb-sessions">Nombre de recettes à cuisiner</label>
+          <select id="nb-sessions">
+            <option value="1">1 recette</option>
+            <option value="2" selected>2 recettes</option>
+            <option value="3">3 recettes</option>
+            <option value="4">4 recettes</option>
+          </select>
+        </div>
+        <div>
+          <label for="repas-couverts">Repas à couvrir par recette</label>
+          <select id="repas-couverts">
+            <option value="2">2 repas</option>
+            <option value="4" selected>4 repas</option>
+            <option value="6">6 repas</option>
+          </select>
+        </div>
+      </div>
+      <button class="principal" id="btn-generer">Générer le plan</button>
+      <div id="resultat-plan"></div>
+    </section>
+  </main>
+
+  <script src="recipes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
