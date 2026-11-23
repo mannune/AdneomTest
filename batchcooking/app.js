@@ -28,7 +28,13 @@ function nouvelId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-function formaterQuantite(n) {
+// Unités comptables (pièces, boîtes, gousses) : entier d'au moins 1.
+const UNITES_COMPTABLES = /^(pièce|boîte|gousse)s?$/i;
+
+function formaterQuantite(n, unite = "") {
+  if (UNITES_COMPTABLES.test(unite)) {
+    return String(Math.max(1, Math.round(n)));
+  }
   const arrondi = Math.round(n * 10) / 10;
   return Number.isInteger(arrondi) ? String(arrondi) : arrondi.toFixed(1).replace(".", ",");
 }
@@ -246,7 +252,7 @@ function genererPlan() {
 
     const lignes = r.ingredients.map((ing) => {
       const dispo = estDisponible(ing.nom, etat.frigo);
-      const qte = formaterQuantite(ing.qte * coefficient);
+      const qte = formaterQuantite(ing.qte * coefficient, ing.unite);
       return `<li class="${dispo ? "ok" : ""}">${dispo ? "✓" : "○"} ${echapper(qte)} ${echapper(ing.unite)} ${echapper(ing.nom)}${dispo ? "" : " <em>(à acheter)</em>"}</li>`;
     }).join("");
 
@@ -269,7 +275,7 @@ function genererPlan() {
 
   const courses = [...liste.values()]
     .sort((a, b) => a.nom.localeCompare(b.nom, "fr"))
-    .map((i) => `<li><span>${echapper(formaterQuantite(i.qte))} ${echapper(i.unite)} ${echapper(i.nom)}</span></li>`)
+    .map((i) => `<li><span>${echapper(formaterQuantite(i.qte, i.unite))} ${echapper(i.unite)} ${echapper(i.nom)}</span></li>`)
     .join("");
 
   const exclues = RECETTES.length - compatibles.length;
