@@ -11,15 +11,15 @@ for (const f of ["recipes.js", "app.js"]) {
   vm.runInContext(fs.readFileSync(path.join(dossier, f), "utf8"), contexte, { filename: f });
 }
 const L = vm.runInContext(
-  "({ RECETTES, ALLERGENES, GROUPES, recettesCompatibles, formaterQuantite, estDisponible, analyserRecette })",
+  "({ RECETTES, ALLERGENES, GROUPES, CUISINES, recettesCompatibles, formaterQuantite, estDisponible, analyserRecette })",
   contexte
 );
 
 const membre = (age, allergies = []) => ({ id: age, nom: age, age, allergies });
 
-test("la base contient 40 recettes aux identifiants uniques", () => {
-  assert.strictEqual(L.RECETTES.length, 40);
-  assert.strictEqual(new Set(L.RECETTES.map((r) => r.id)).size, 40);
+test("la base contient 68 recettes aux identifiants uniques", () => {
+  assert.strictEqual(L.RECETTES.length, 68);
+  assert.strictEqual(new Set(L.RECETTES.map((r) => r.id)).size, 68);
 });
 
 test("chaque recette est complète et cohérente", () => {
@@ -38,7 +38,7 @@ test("chaque recette est complète et cohérente", () => {
 });
 
 test("les recettes végétariennes n'ont ni viande ni poisson", () => {
-  const interdits = /poulet|boeuf|dinde|saumon|cabillaud|thon|crevette|jambon/i;
+  const interdits = /poulet|boeuf|bœuf|dinde|saumon|cabillaud|thon|crevette|jambon|merguez|agneau|porc/i;
   for (const r of L.RECETTES.filter((r) => r.vegetarien)) {
     for (const i of r.ingredients) assert.ok(!interdits.test(i.nom), `${r.id} contient ${i.nom}`);
   }
@@ -56,14 +56,15 @@ test("aucune recette contenant un allergène n'est proposée à un foyer concern
 
 test("les allergènes évidents sont bien déclarés", () => {
   const exige = [
-    [/pâtes|semoule|boulgour|farine|chapelure|nouilles|lasagne|avoine|pâte brisée/i, "gluten"],
-    [/lait(?! de coco)|crème|fromage|feta|beurre/i, "lactose"],
+    [/pâtes|semoule|boulgour|farine|chapelure|nouilles|lasagne|avoine|pâte brisée|pain|pita|brick|gnocchis/i, "gluten"],
+    [/\blait\b(?! de coco)|crème|fromage|feta|beurre|parmesan|mozzarella|yaourt/i, "lactose"],
     [/oeufs/i, "oeufs"],
     [/saumon|cabillaud|thon/i, "poisson"],
     [/crevette/i, "crustaces"],
     [/soja|tofu/i, "soja"],
-    [/sésame/i, "sesame"],
-    [/amande|noix(?! de coco)|noisette/i, "fruits_a_coque"],
+    [/amande|noix(?! de coco)|noisette|pignons de pin/i, "fruits_a_coque"],
+    [/tahini|sésame/i, "sesame"],
+    [/bouillon/i, "celeri"],
     [/céleri/i, "celeri"],
   ];
   for (const r of L.RECETTES) {
@@ -109,4 +110,31 @@ test("arrondi des quantités comptables et disponibilité dans le frigo", () => 
   assert.strictEqual(L.formaterQuantite(1.25, "kg"), "1,3");
   assert.ok(L.estDisponible("pommes de terre", ["Pommes de terre"]));
   assert.ok(L.estDisponible("oignon", ["oignons"]));
+});
+
+test("chaque cuisine demandée a au moins 7 recettes et les clés sont valides", () => {
+  for (const r of L.RECETTES) {
+    if (r.cuisine) assert.ok(r.cuisine in L.CUISINES, `${r.id} : cuisine inconnue ${r.cuisine}`);
+  }
+  for (const cle of ["france", "tunisie", "italie", "moyen-orient"]) {
+    const n = L.RECETTES.filter((r) => r.cuisine === cle).length;
+    assert.ok(n >= 7, `${cle} : ${n} recettes`);
+  }
+});
+
+test("le filtre de cuisine ne renvoie que la cuisine choisie", () => {
+  const foyer = [membre("adulte")];
+  for (const cle of ["france", "tunisie", "italie", "moyen-orient"]) {
+    const res = L.recettesCompatibles(foyer, { cuisine: cle, type: "tout" });
+    assert.ok(res.length >= 5, `${cle} : ${res.length}`);
+    assert.ok(res.every((r) => r.cuisine === cle));
+  }
+  assert.ok(L.recettesCompatibles(foyer, { cuisine: "toutes" }).length > 30);
+});
+
+test("les plats épicés ou avec alcool portent une note", () => {
+  const avecNote = (id) => L.RECETTES.find((r) => r.id === id).note;
+  assert.match(avecNote("chakchouka"), /harissa/i);
+  assert.match(avecNote("boeuf-bourguignon"), /vin/i);
+  assert.match(avecNote("ojja-merguez"), /merguez/i);
 });

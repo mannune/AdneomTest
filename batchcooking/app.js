@@ -186,7 +186,7 @@ function supprimerIngredient(index) {
 // ---------- Plan ----------
 
 // Recettes compatibles avec les intolérances et les âges du foyer, puis avec les filtres choisis.
-// filtres : { type: "repas" | "petit-dej" | "gouter" | "tout", vegetarien, sansFour, tempsMax (minutes, 0 = illimité) }
+// filtres : { cuisine: clé de CUISINES ou "toutes", type: "repas" | "petit-dej" | "gouter" | "tout", vegetarien, sansFour, tempsMax (minutes, 0 = illimité) }
 function recettesCompatibles(membres = etat.membres, filtres = {}) {
   const allergiesFoyer = new Set(membres.flatMap((m) => m.allergies));
   const groupesFoyer = new Set(membres.map((m) => m.age));
@@ -196,6 +196,7 @@ function recettesCompatibles(membres = etat.membres, filtres = {}) {
     if (r.allergenes.some((a) => allergiesFoyer.has(a))) return false;
     if (![...groupesFoyer].every((g) => r.groupes.includes(g))) return false;
     if (type !== "tout" && (r.type || "repas") !== type) return false;
+    if (filtres.cuisine && filtres.cuisine !== "toutes" && (r.cuisine || "monde") !== filtres.cuisine) return false;
     if (filtres.vegetarien && !r.vegetarien) return false;
     if (filtres.sansFour && r.four) return false;
     if (filtres.tempsMax && r.prep + r.cuisson > filtres.tempsMax) return false;
@@ -206,6 +207,7 @@ function recettesCompatibles(membres = etat.membres, filtres = {}) {
 function lireFiltres() {
   return {
     type: document.getElementById("filtre-type").value,
+    cuisine: document.getElementById("filtre-cuisine").value,
     vegetarien: document.getElementById("filtre-vegetarien").checked,
     sansFour: document.getElementById("filtre-sans-four").checked,
     tempsMax: Number(document.getElementById("filtre-temps").value),
@@ -277,6 +279,7 @@ function genererPlan() {
     notes.push(r.congelable
       ? `Conservation : ${r.conservation.frigo} jours au frigo, ${r.conservation.congel} mois au congélateur (portionner et congeler dès refroidissement).`
       : `Conservation : ${r.conservation.frigo} jour(s) au frigo. Ne pas congeler.`);
+    if (r.note) notes.push(r.note);
     if (etat.membres.some((m) => m.age === "bebe")) {
       notes.push("Bébé dans le foyer : prélever sa portion avant l'assaisonnement et la mixer si besoin.");
     }
@@ -284,7 +287,7 @@ function genererPlan() {
     return `
       <div class="recette">
         <h3>${echapper(r.nom)}</h3>
-        <div class="discret">${r.vegetarien ? "Végétarien · " : ""}Préparation ${r.prep} min${r.cuisson ? " · cuisson " + r.cuisson + " min" : " · sans cuisson"}${r.four ? " · four" : ""}</div>
+        <div class="discret">${r.cuisine ? echapper(CUISINES[r.cuisine]) + " · " : ""}${r.vegetarien ? "Végétarien · " : ""}Préparation ${r.prep} min${r.cuisson ? " · cuisson " + r.cuisson + " min" : " · sans cuisson"}${r.four ? " · four" : ""}</div>
         <div class="discret">Pour ${formaterQuantite(portionsNecessaires)} portions · couvre ${repasCouverts} repas · ${formaterQuantite(analyse.score * 100)} % des ingrédients déjà au frigo</div>
         <ul class="ingredients">${lignes}</ul>
         <ol>${etapes}</ol>
@@ -313,8 +316,15 @@ function genererPlan() {
 
 // ---------- Initialisation ----------
 
+function construireFiltreCuisine() {
+  document.getElementById("filtre-cuisine").innerHTML =
+    '<option value="toutes" selected>Toutes les cuisines</option>' +
+    Object.entries(CUISINES).map(([cle, nom]) => `<option value="${cle}">${echapper(nom)}</option>`).join("");
+}
+
 function init() {
   charger();
+  construireFiltreCuisine();
   construireCasesAllergies();
   afficherMembres();
   afficherFrigo();

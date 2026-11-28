@@ -2,7 +2,7 @@
 // Stratégie : réseau d'abord (pour recevoir les mises à jour), cache en secours.
 // Incrémenter la version du cache à chaque changement des fichiers de l'app.
 
-const VERSION_CACHE = "batchcooking-v3";
+const VERSION_CACHE = "batchcooking-v4";
 
 const FICHIERS_APP = [
   "./",
