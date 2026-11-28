@@ -164,11 +164,38 @@
           </select>
         </div>
       </div>
+      <div class="ligne">
+        <div>
+          <label for="filtre-type">Type de plat</label>
+          <select id="filtre-type">
+            <option value="repas" selected>Repas (plats et soupes)</option>
+            <option value="petit-dej">Petit-déjeuner</option>
+            <option value="gouter">Goûter</option>
+            <option value="tout">Tout</option>
+          </select>
+        </div>
+        <div>
+          <label for="filtre-temps">Temps total maximum</label>
+          <select id="filtre-temps">
+            <option value="0" selected>Peu importe</option>
+            <option value="30">30 minutes</option>
+            <option value="45">45 minutes</option>
+            <option value="60">1 heure</option>
+          </select>
+        </div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" id="filtre-vegetarien"> Végétarien</label>
+        <label><input type="checkbox" id="filtre-sans-four"> Sans four</label>
+      </div>
       <button class="principal" id="btn-generer">Générer le plan</button>
       <div id="resultat-plan"></div>
     </section>
   </main>
 
+  <p class="discret" style="max-width:760px;margin:0 auto;padding:0 16px 24px">
+    Les allergènes indiqués sont donnés à titre d'aide : vérifiez toujours les étiquettes des produits.
+  </p>
   <script src="recipes.js"></script>
   <script src="app.js"></script>
   <script>

@@ -1,9 +1,19 @@
 // Base de recettes de batch cooking.
 // base : nombre de portions pour adulte produites par la recette de référence.
 // allergenes : clés utilisées pour filtrer selon les intolérances du foyer.
+//   Ils sont déclarés de façon prudente : en cas de doute (pâtes, bouillon, sauce soja...),
+//   l'allergène est listé. Toujours vérifier les étiquettes des produits achetés.
 // groupes : tranches d'âge pour lesquelles la recette convient.
 //   'bebe' (0-3 ans), 'enfant' (3-12 ans), 'ado' (13-17 ans), 'adulte' (18+)
+// type : "repas" par défaut ; "petit-dej" ou "gouter" pour les autres.
+// vegetarien : true si la recette ne contient ni viande ni poisson.
+// four : true si la recette nécessite un four.
+// prep / cuisson : durées en minutes.
+// congelable : peut-on congeler la recette cuite.
+// conservation : { frigo: jours au réfrigérateur, congel: mois au congélateur (0 si non congelable) }.
+//   Valeurs indicatives pour un plat cuit, refroidi vite et conservé à 4 °C maximum.
 // ingredients : { nom, qte, unite } pour la recette de référence (base portions).
+//   Unités comptables : "pièce(s)", "boîte(s)", "gousse(s)" (arrondies à l'entier).
 
 const ALLERGENES = {
   gluten: "Gluten (blé, orge, seigle, avoine)",
@@ -30,23 +40,21 @@ const FACTEUR_PORTION = { bebe: 0.4, enfant: 0.7, ado: 1, adulte: 1 };
 
 const TOUS_GROUPES = ["bebe", "enfant", "ado", "adulte"];
 
+const I = (nom, qte, unite) => ({ nom, qte, unite });
+const TOUS = ["bebe", "enfant", "ado", "adulte"];
+const GRANDS = ["enfant", "ado", "adulte"];
+
 const RECETTES = [
+  // ---------- Plats complets ----------
   {
     id: "chili-sin-carne",
     nom: "Chili sin carne aux haricots rouges",
-    base: 6,
-    allergenes: [],
-    groupes: ["enfant", "ado", "adulte"],
-    congelable: true,
+    base: 6, allergenes: [], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 15, cuisson: 30, congelable: true, conservation: { frigo: 4, congel: 3 },
     ingredients: [
-      { nom: "haricots rouges en conserve", qte: 2, unite: "boîtes" },
-      { nom: "tomates concassées", qte: 2, unite: "boîtes" },
-      { nom: "oignon", qte: 2, unite: "pièces" },
-      { nom: "ail", qte: 2, unite: "gousses" },
-      { nom: "poivron", qte: 1, unite: "pièce" },
-      { nom: "maïs", qte: 1, unite: "boîte" },
-      { nom: "cumin", qte: 1, unite: "c. à café" },
-      { nom: "huile d'olive", qte: 2, unite: "c. à soupe" },
+      I("haricots rouges en conserve", 2, "boîtes"), I("tomates concassées", 2, "boîtes"),
+      I("oignon", 2, "pièces"), I("ail", 2, "gousses"), I("poivron", 1, "pièce"),
+      I("maïs", 1, "boîte"), I("cumin", 1, "c. à café"), I("huile d'olive", 2, "c. à soupe"),
     ],
     etapes: [
       "Faire revenir l'oignon, l'ail et le poivron dans l'huile.",
@@ -57,17 +65,11 @@ const RECETTES = [
   {
     id: "gratin-courgettes-pates",
     nom: "Gratin de courgettes et pâtes",
-    base: 6,
-    allergenes: ["gluten", "lactose", "oeufs"],
-    groupes: ["enfant", "ado", "adulte"],
-    congelable: true,
+    base: 6, allergenes: ["gluten", "lactose", "oeufs"], groupes: GRANDS, vegetarien: true, four: true,
+    prep: 20, cuisson: 30, congelable: true, conservation: { frigo: 3, congel: 3 },
     ingredients: [
-      { nom: "pâtes", qte: 500, unite: "g" },
-      { nom: "courgette", qte: 3, unite: "pièces" },
-      { nom: "oignon", qte: 1, unite: "pièce" },
-      { nom: "oeufs", qte: 2, unite: "pièces" },
-      { nom: "crème fraîche", qte: 20, unite: "cl" },
-      { nom: "fromage râpé", qte: 100, unite: "g" },
+      I("pâtes", 500, "g"), I("courgette", 3, "pièces"), I("oignon", 1, "pièce"),
+      I("oeufs", 2, "pièces"), I("crème fraîche", 20, "cl"), I("fromage râpé", 100, "g"),
     ],
     etapes: [
       "Cuire les pâtes al dente.",
@@ -78,16 +80,11 @@ const RECETTES = [
   {
     id: "riz-poulet-legumes",
     nom: "Riz au poulet et légumes",
-    base: 6,
-    allergenes: [],
-    groupes: ["bebe", "enfant", "ado", "adulte"],
-    congelable: true,
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: false, four: false,
+    prep: 15, cuisson: 25, congelable: true, conservation: { frigo: 3, congel: 3 },
     ingredients: [
-      { nom: "riz", qte: 300, unite: "g" },
-      { nom: "blanc de poulet", qte: 500, unite: "g" },
-      { nom: "carotte", qte: 3, unite: "pièces" },
-      { nom: "courgette", qte: 2, unite: "pièces" },
-      { nom: "huile d'olive", qte: 1, unite: "c. à soupe" },
+      I("riz", 300, "g"), I("blanc de poulet", 500, "g"), I("carotte", 3, "pièces"),
+      I("courgette", 2, "pièces"), I("huile d'olive", 1, "c. à soupe"),
     ],
     etapes: [
       "Cuire le riz.",
@@ -98,17 +95,11 @@ const RECETTES = [
   {
     id: "lentilles-corail",
     nom: "Dahl de lentilles corail",
-    base: 6,
-    allergenes: [],
-    groupes: ["bebe", "enfant", "ado", "adulte"],
-    congelable: true,
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 10, cuisson: 25, congelable: true, conservation: { frigo: 4, congel: 3 },
     ingredients: [
-      { nom: "lentilles corail", qte: 300, unite: "g" },
-      { nom: "tomates concassées", qte: 1, unite: "boîte" },
-      { nom: "oignon", qte: 1, unite: "pièce" },
-      { nom: "carotte", qte: 2, unite: "pièces" },
-      { nom: "lait de coco", qte: 20, unite: "cl" },
-      { nom: "curcuma", qte: 1, unite: "c. à café" },
+      I("lentilles corail", 300, "g"), I("tomates concassées", 1, "boîte"), I("oignon", 1, "pièce"),
+      I("carotte", 2, "pièces"), I("lait de coco", 20, "cl"), I("curcuma", 1, "c. à café"),
     ],
     etapes: [
       "Faire revenir oignon et carotte émincés.",
@@ -119,16 +110,11 @@ const RECETTES = [
   {
     id: "saumon-four-legumes",
     nom: "Saumon au four et légumes rôtis",
-    base: 4,
-    allergenes: ["poisson"],
-    groupes: ["enfant", "ado", "adulte"],
-    congelable: false,
+    base: 4, allergenes: ["poisson"], groupes: GRANDS, vegetarien: false, four: true,
+    prep: 15, cuisson: 37, congelable: false, conservation: { frigo: 2, congel: 0 },
     ingredients: [
-      { nom: "pavé de saumon", qte: 4, unite: "pièces" },
-      { nom: "pommes de terre", qte: 800, unite: "g" },
-      { nom: "courgette", qte: 2, unite: "pièces" },
-      { nom: "huile d'olive", qte: 2, unite: "c. à soupe" },
-      { nom: "citron", qte: 1, unite: "pièce" },
+      I("pavé de saumon", 4, "pièces"), I("pommes de terre", 800, "g"), I("courgette", 2, "pièces"),
+      I("huile d'olive", 2, "c. à soupe"), I("citron", 1, "pièce"),
     ],
     etapes: [
       "Couper les légumes, les arroser d'huile et les rôtir 25 minutes à 200 °C.",
@@ -136,17 +122,423 @@ const RECETTES = [
     ],
   },
   {
+    id: "omelette-four-legumes",
+    nom: "Frittata aux légumes",
+    base: 4, allergenes: ["oeufs", "lactose"], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 10, cuisson: 20, congelable: false, conservation: { frigo: 2, congel: 0 },
+    ingredients: [
+      I("oeufs", 8, "pièces"), I("poivron", 1, "pièce"), I("épinards", 200, "g"),
+      I("oignon", 1, "pièce"), I("fromage râpé", 60, "g"),
+    ],
+    etapes: [
+      "Faire revenir oignon, poivron et épinards.",
+      "Battre les œufs avec le fromage, verser sur les légumes et cuire à couvert 10 minutes.",
+    ],
+  },
+  {
+    id: "bolognaise-lentilles",
+    nom: "Bolognaise de lentilles vertes et pâtes",
+    base: 6, allergenes: ["gluten"], groupes: TOUS, vegetarien: true, four: false,
+    prep: 15, cuisson: 35, congelable: true, conservation: { frigo: 4, congel: 3 },
+    ingredients: [
+      I("pâtes", 500, "g"), I("lentilles vertes", 250, "g"), I("tomates concassées", 2, "boîtes"),
+      I("oignon", 1, "pièce"), I("carotte", 2, "pièces"), I("ail", 2, "gousses"),
+      I("huile d'olive", 2, "c. à soupe"),
+    ],
+    etapes: [
+      "Cuire les lentilles 20 minutes dans l'eau, égoutter.",
+      "Faire revenir oignon, carotte râpée et ail, ajouter tomates et lentilles, mijoter 15 minutes.",
+      "Cuire les pâtes et les servir avec la sauce. Mixer légèrement la sauce pour les petits.",
+    ],
+  },
+  {
+    id: "bolognaise-boeuf",
+    nom: "Bolognaise de bœuf et pâtes",
+    base: 6, allergenes: ["gluten"], groupes: TOUS, vegetarien: false, four: false,
+    prep: 15, cuisson: 40, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("pâtes", 500, "g"), I("boeuf haché", 500, "g"), I("tomates concassées", 2, "boîtes"),
+      I("oignon", 1, "pièce"), I("carotte", 2, "pièces"), I("ail", 2, "gousses"),
+      I("huile d'olive", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Faire revenir oignon, carotte râpée et ail, ajouter le bœuf et bien le cuire.",
+      "Ajouter les tomates, mijoter 30 minutes.",
+      "Cuire les pâtes, servir avec la sauce.",
+    ],
+  },
+  {
+    id: "poulet-curry-coco",
+    nom: "Poulet curry coco et riz",
+    base: 6, allergenes: [], groupes: GRANDS, vegetarien: false, four: false,
+    prep: 15, cuisson: 25, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("riz", 300, "g"), I("blanc de poulet", 600, "g"), I("lait de coco", 40, "cl"),
+      I("oignon", 1, "pièce"), I("curry doux", 2, "c. à café"), I("huile d'olive", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Dorer le poulet en morceaux avec l'oignon émincé.",
+      "Ajouter le curry puis le lait de coco, mijoter 15 minutes.",
+      "Servir sur le riz cuit.",
+    ],
+  },
+  {
+    id: "blanquette-dinde",
+    nom: "Blanquette de dinde et carottes",
+    base: 6, allergenes: ["gluten", "lactose"], groupes: TOUS, vegetarien: false, four: false,
+    prep: 20, cuisson: 40, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("escalope de dinde", 600, "g"), I("carotte", 4, "pièces"), I("champignons", 250, "g"),
+      I("oignon", 1, "pièce"), I("farine", 30, "g"), I("crème fraîche", 20, "cl"),
+      I("beurre", 30, "g"),
+    ],
+    etapes: [
+      "Faire revenir la dinde coupée en cubes dans le beurre avec l'oignon.",
+      "Ajouter la farine, 50 cl d'eau, les carottes et les champignons, cuire 30 minutes.",
+      "Hors du feu, ajouter la crème fraîche.",
+    ],
+  },
+  {
+    id: "gratin-pdt-poireaux",
+    nom: "Gratin de pommes de terre et poireaux",
+    base: 6, allergenes: ["lactose"], groupes: TOUS, vegetarien: true, four: true,
+    prep: 20, cuisson: 45, congelable: false, conservation: { frigo: 3, congel: 0 },
+    ingredients: [
+      I("pommes de terre", 1, "kg"), I("poireau", 3, "pièces"), I("crème fraîche", 20, "cl"),
+      I("fromage râpé", 100, "g"), I("ail", 1, "gousse"),
+    ],
+    etapes: [
+      "Éplucher et trancher finement pommes de terre et poireaux.",
+      "Les disposer en couches dans un plat avec la crème et l'ail.",
+      "Couvrir de fromage et cuire 45 minutes à 180 °C.",
+    ],
+  },
+  {
+    id: "hachis-parmentier",
+    nom: "Hachis parmentier",
+    base: 6, allergenes: ["lactose"], groupes: TOUS, vegetarien: false, four: true,
+    prep: 25, cuisson: 40, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("boeuf haché", 500, "g"), I("pommes de terre", 1.2, "kg"), I("oignon", 1, "pièce"),
+      I("carotte", 2, "pièces"), I("lait", 20, "cl"), I("beurre", 40, "g"),
+    ],
+    etapes: [
+      "Cuire les pommes de terre, les écraser avec le lait et le beurre.",
+      "Faire revenir oignon, carotte râpée et bœuf.",
+      "Étaler la viande dans un plat, couvrir de purée et gratiner 25 minutes à 190 °C.",
+    ],
+  },
+  {
+    id: "curry-pois-chiches",
+    nom: "Curry de pois chiches et épinards",
+    base: 6, allergenes: [], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 10, cuisson: 25, congelable: true, conservation: { frigo: 4, congel: 3 },
+    ingredients: [
+      I("pois chiches en conserve", 3, "boîtes"), I("épinards", 300, "g"), I("tomates concassées", 1, "boîte"),
+      I("lait de coco", 20, "cl"), I("oignon", 1, "pièce"), I("curry doux", 2, "c. à café"),
+    ],
+    etapes: [
+      "Faire revenir l'oignon et le curry.",
+      "Ajouter pois chiches égouttés, tomates et lait de coco, mijoter 15 minutes.",
+      "Ajouter les épinards en fin de cuisson.",
+    ],
+  },
+  {
+    id: "curry-patate-douce",
+    nom: "Curry doux de patate douce",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 15, cuisson: 25, congelable: true, conservation: { frigo: 4, congel: 3 },
+    ingredients: [
+      I("patate douce", 1, "kg"), I("lait de coco", 40, "cl"), I("oignon", 1, "pièce"),
+      I("lentilles corail", 100, "g"), I("curry doux", 1, "c. à café"),
+    ],
+    etapes: [
+      "Faire revenir l'oignon, ajouter les patates douces en dés et le curry.",
+      "Verser le lait de coco, 20 cl d'eau et les lentilles, cuire 25 minutes.",
+      "Écraser grossièrement pour les petits.",
+    ],
+  },
+  {
+    id: "tajine-poulet",
+    nom: "Tajine de poulet aux légumes et semoule",
+    base: 6, allergenes: ["gluten"], groupes: GRANDS, vegetarien: false, four: false,
+    prep: 20, cuisson: 45, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("cuisses de poulet", 6, "pièces"), I("carotte", 4, "pièces"), I("courgette", 2, "pièces"),
+      I("oignon", 2, "pièces"), I("semoule", 300, "g"), I("ras el hanout", 2, "c. à café"),
+    ],
+    etapes: [
+      "Dorer le poulet avec les oignons et les épices.",
+      "Ajouter les légumes, couvrir d'eau à mi-hauteur, mijoter 40 minutes à couvert.",
+      "Préparer la semoule et servir.",
+    ],
+  },
+  {
+    id: "couscous-legumes",
+    nom: "Couscous aux légumes et pois chiches",
+    base: 6, allergenes: ["gluten"], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 20, cuisson: 35, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("semoule", 400, "g"), I("pois chiches en conserve", 2, "boîtes"), I("carotte", 3, "pièces"),
+      I("courgette", 2, "pièces"), I("navet", 2, "pièces"), I("tomates concassées", 1, "boîte"),
+      I("ras el hanout", 2, "c. à café"),
+    ],
+    etapes: [
+      "Cuire les légumes en morceaux dans un bouillon d'eau et de tomates épicé, 30 minutes.",
+      "Ajouter les pois chiches en fin de cuisson.",
+      "Préparer la semoule et servir avec les légumes.",
+    ],
+  },
+  {
+    id: "boulettes-sauce-tomate",
+    nom: "Boulettes de bœuf, sauce tomate et riz",
+    base: 6, allergenes: ["gluten", "oeufs"], groupes: TOUS, vegetarien: false, four: false,
+    prep: 25, cuisson: 30, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("boeuf haché", 500, "g"), I("oeufs", 1, "pièce"), I("chapelure", 50, "g"),
+      I("tomates concassées", 2, "boîtes"), I("oignon", 1, "pièce"), I("riz", 300, "g"),
+    ],
+    etapes: [
+      "Mélanger bœuf, œuf et chapelure, former des boulettes.",
+      "Les dorer à la poêle, ajouter oignon et tomates, mijoter 20 minutes.",
+      "Servir avec le riz cuit.",
+    ],
+  },
+  {
+    id: "riz-cantonais",
+    nom: "Riz cantonais au poulet",
+    base: 4, allergenes: ["oeufs", "soja", "gluten"], groupes: GRANDS, vegetarien: false, four: false,
+    prep: 15, cuisson: 15, congelable: true, conservation: { frigo: 2, congel: 2 },
+    ingredients: [
+      I("riz", 250, "g"), I("blanc de poulet", 300, "g"), I("oeufs", 3, "pièces"),
+      I("petits pois", 150, "g"), I("carotte", 1, "pièce"), I("sauce soja", 3, "c. à soupe"),
+    ],
+    etapes: [
+      "Cuire le riz la veille ou le laisser refroidir.",
+      "Faire sauter le poulet, les petits pois et la carotte en dés.",
+      "Ajouter le riz, la sauce soja et les œufs brouillés, mélanger à feu vif.",
+    ],
+  },
+  {
+    id: "wok-nouilles-tofu",
+    nom: "Wok de nouilles, légumes et tofu",
+    base: 4, allergenes: ["gluten", "soja", "sesame"], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 20, cuisson: 15, congelable: false, conservation: { frigo: 2, congel: 0 },
+    ingredients: [
+      I("nouilles", 250, "g"), I("tofu ferme", 250, "g"), I("carotte", 2, "pièces"),
+      I("poivron", 1, "pièce"), I("sauce soja", 3, "c. à soupe"), I("huile de sésame", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Cuire les nouilles, égoutter.",
+      "Faire dorer le tofu en cubes, ajouter les légumes en lamelles.",
+      "Ajouter nouilles, sauce soja et huile de sésame, mélanger 2 minutes.",
+    ],
+  },
+  {
+    id: "quiche-legumes",
+    nom: "Quiche aux légumes et fromage",
+    base: 6, allergenes: ["gluten", "lactose", "oeufs"], groupes: GRANDS, vegetarien: true, four: true,
+    prep: 20, cuisson: 40, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("pâte brisée", 1, "pièce"), I("courgette", 2, "pièces"), I("poireau", 1, "pièce"),
+      I("oeufs", 3, "pièces"), I("crème fraîche", 20, "cl"), I("fromage râpé", 100, "g"),
+    ],
+    etapes: [
+      "Faire revenir courgettes et poireau émincés.",
+      "Étaler la pâte, garnir de légumes, verser œufs battus et crème, parsemer de fromage.",
+      "Cuire 35 à 40 minutes à 180 °C.",
+    ],
+  },
+  {
+    id: "lasagnes-legumes",
+    nom: "Lasagnes aux légumes",
+    base: 6, allergenes: ["gluten", "lactose", "oeufs"], groupes: GRANDS, vegetarien: true, four: true,
+    prep: 30, cuisson: 40, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("feuilles de lasagne", 250, "g"), I("courgette", 3, "pièces"), I("carotte", 2, "pièces"),
+      I("tomates concassées", 2, "boîtes"), I("lait", 50, "cl"), I("farine", 40, "g"),
+      I("beurre", 40, "g"), I("fromage râpé", 100, "g"),
+    ],
+    etapes: [
+      "Faire cuire les légumes en dés avec les tomates 15 minutes.",
+      "Préparer la béchamel : beurre, farine, puis lait chaud en fouettant.",
+      "Monter en couches pâtes, légumes, béchamel, finir au fromage. Cuire 35 minutes à 190 °C.",
+    ],
+  },
+  {
+    id: "lasagnes-boeuf",
+    nom: "Lasagnes au bœuf",
+    base: 6, allergenes: ["gluten", "lactose", "oeufs"], groupes: GRANDS, vegetarien: false, four: true,
+    prep: 30, cuisson: 45, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("feuilles de lasagne", 250, "g"), I("boeuf haché", 500, "g"), I("tomates concassées", 2, "boîtes"),
+      I("oignon", 1, "pièce"), I("lait", 50, "cl"), I("farine", 40, "g"),
+      I("beurre", 40, "g"), I("fromage râpé", 100, "g"),
+    ],
+    etapes: [
+      "Préparer la sauce bolognaise : oignon, bœuf, tomates, mijoter 20 minutes.",
+      "Préparer la béchamel : beurre, farine, puis lait chaud en fouettant.",
+      "Monter en couches pâtes, viande, béchamel, finir au fromage. Cuire 40 minutes à 190 °C.",
+    ],
+  },
+  {
+    id: "cabillaud-patate-douce",
+    nom: "Cabillaud et purée de patate douce",
+    base: 4, allergenes: ["poisson"], groupes: TOUS, vegetarien: false, four: true,
+    prep: 15, cuisson: 25, congelable: false, conservation: { frigo: 2, congel: 0 },
+    ingredients: [
+      I("filet de cabillaud", 4, "pièces"), I("patate douce", 800, "g"), I("citron", 1, "pièce"),
+      I("huile d'olive", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Cuire les patates douces à la vapeur 20 minutes, les écraser.",
+      "Cuire le cabillaud citronné 12 minutes à 180 °C, bien vérifier l'absence d'arêtes pour les petits.",
+    ],
+  },
+  {
+    id: "papillotes-cabillaud",
+    nom: "Papillotes de cabillaud et légumes",
+    base: 4, allergenes: ["poisson"], groupes: GRANDS, vegetarien: false, four: true,
+    prep: 20, cuisson: 20, congelable: false, conservation: { frigo: 2, congel: 0 },
+    ingredients: [
+      I("filet de cabillaud", 4, "pièces"), I("courgette", 2, "pièces"), I("carotte", 2, "pièces"),
+      I("citron", 1, "pièce"), I("huile d'olive", 2, "c. à soupe"),
+    ],
+    etapes: [
+      "Couper les légumes en fines rondelles.",
+      "Disposer poisson, légumes, huile et citron dans du papier cuisson, bien refermer.",
+      "Cuire 20 minutes à 180 °C.",
+    ],
+  },
+  {
+    id: "pates-thon-tomate",
+    nom: "Pâtes au thon et à la tomate",
+    base: 4, allergenes: ["gluten", "poisson"], groupes: GRANDS, vegetarien: false, four: false,
+    prep: 10, cuisson: 20, congelable: true, conservation: { frigo: 2, congel: 2 },
+    ingredients: [
+      I("pâtes", 350, "g"), I("thon en conserve", 2, "boîtes"), I("tomates concassées", 1, "boîte"),
+      I("oignon", 1, "pièce"), I("ail", 1, "gousse"),
+    ],
+    etapes: [
+      "Faire revenir oignon et ail, ajouter les tomates, mijoter 10 minutes.",
+      "Ajouter le thon égoutté, puis les pâtes cuites.",
+    ],
+  },
+  {
+    id: "gratin-chou-fleur",
+    nom: "Gratin de chou-fleur",
+    base: 6, allergenes: ["gluten", "lactose"], groupes: TOUS, vegetarien: true, four: true,
+    prep: 20, cuisson: 30, congelable: false, conservation: { frigo: 3, congel: 0 },
+    ingredients: [
+      I("chou-fleur", 1, "pièce"), I("lait", 50, "cl"), I("farine", 40, "g"),
+      I("beurre", 40, "g"), I("fromage râpé", 100, "g"),
+    ],
+    etapes: [
+      "Cuire le chou-fleur en bouquets à la vapeur 10 minutes.",
+      "Préparer la béchamel : beurre, farine, lait chaud.",
+      "Napper le chou-fleur, parsemer de fromage et gratiner 20 minutes à 190 °C.",
+    ],
+  },
+  {
+    id: "poulet-basquaise",
+    nom: "Poulet basquaise et riz",
+    base: 6, allergenes: [], groupes: GRANDS, vegetarien: false, four: false,
+    prep: 20, cuisson: 40, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("cuisses de poulet", 6, "pièces"), I("poivron", 3, "pièces"), I("tomates concassées", 2, "boîtes"),
+      I("oignon", 2, "pièces"), I("ail", 2, "gousses"), I("riz", 300, "g"),
+    ],
+    etapes: [
+      "Dorer le poulet, le réserver.",
+      "Faire revenir oignons, poivrons et ail, ajouter tomates et poulet, mijoter 35 minutes à couvert.",
+      "Servir avec le riz cuit.",
+    ],
+  },
+  {
+    id: "poulet-citron-pdt",
+    nom: "Poulet au citron et pommes de terre",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: false, four: true,
+    prep: 15, cuisson: 50, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("cuisses de poulet", 6, "pièces"), I("pommes de terre", 1, "kg"), I("citron", 2, "pièces"),
+      I("ail", 3, "gousses"), I("huile d'olive", 2, "c. à soupe"),
+    ],
+    etapes: [
+      "Mettre poulet et pommes de terre en morceaux dans un plat avec ail, citron et huile.",
+      "Cuire 50 minutes à 200 °C en retournant à mi-cuisson.",
+    ],
+  },
+  {
+    id: "crevettes-ail-riz",
+    nom: "Crevettes à l'ail et riz aux petits pois",
+    base: 4, allergenes: ["crustaces"], groupes: GRANDS, vegetarien: false, four: false,
+    prep: 10, cuisson: 20, congelable: false, conservation: { frigo: 1, congel: 0 },
+    ingredients: [
+      I("crevettes décortiquées", 400, "g"), I("riz", 250, "g"), I("petits pois", 150, "g"),
+      I("ail", 2, "gousses"), I("huile d'olive", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Cuire le riz avec les petits pois.",
+      "Saisir les crevettes à l'ail dans l'huile 4 minutes.",
+      "Servir ensemble. À consommer dans la journée ou le lendemain.",
+    ],
+  },
+  {
+    id: "salade-lentilles-feta",
+    nom: "Salade de lentilles, carottes et feta",
+    base: 4, allergenes: ["lactose"], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 15, cuisson: 20, congelable: false, conservation: { frigo: 3, congel: 0 },
+    ingredients: [
+      I("lentilles vertes", 250, "g"), I("carotte", 2, "pièces"), I("feta", 150, "g"),
+      I("oignon", 1, "pièce"), I("huile d'olive", 2, "c. à soupe"), I("citron", 1, "pièce"),
+    ],
+    etapes: [
+      "Cuire les lentilles 20 minutes, égoutter et laisser refroidir.",
+      "Ajouter carottes râpées, oignon émincé et feta émiettée.",
+      "Assaisonner d'huile et de jus de citron.",
+    ],
+  },
+  {
+    id: "ratatouille-riz",
+    nom: "Ratatouille et riz",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 20, cuisson: 40, congelable: true, conservation: { frigo: 4, congel: 3 },
+    ingredients: [
+      I("courgette", 3, "pièces"), I("aubergine", 2, "pièces"), I("poivron", 2, "pièces"),
+      I("tomates concassées", 2, "boîtes"), I("oignon", 1, "pièce"), I("riz", 300, "g"),
+      I("huile d'olive", 2, "c. à soupe"),
+    ],
+    etapes: [
+      "Couper tous les légumes en dés.",
+      "Faire revenir l'oignon, ajouter les légumes puis les tomates, mijoter 35 minutes à couvert.",
+      "Servir avec le riz cuit. Écraser les légumes pour les petits.",
+    ],
+  },
+  {
+    id: "taboule-boulgour",
+    nom: "Taboulé de boulgour",
+    base: 6, allergenes: ["gluten"], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 20, cuisson: 0, congelable: false, conservation: { frigo: 3, congel: 0 },
+    ingredients: [
+      I("boulgour", 300, "g"), I("tomate", 4, "pièces"), I("concombre", 1, "pièce"),
+      I("persil", 1, "botte"), I("citron", 2, "pièces"), I("huile d'olive", 3, "c. à soupe"),
+    ],
+    etapes: [
+      "Hydrater le boulgour à l'eau chaude 10 minutes.",
+      "Ajouter tomates et concombre en dés, persil haché, citron et huile.",
+      "Laisser reposer 1 heure au frais.",
+    ],
+  },
+
+  // ---------- Soupes et veloutés ----------
+  {
     id: "soupe-potiron",
     nom: "Velouté de potiron",
-    base: 6,
-    allergenes: ["lactose"],
-    groupes: ["bebe", "enfant", "ado", "adulte"],
-    congelable: true,
+    base: 6, allergenes: ["lactose"], groupes: TOUS, vegetarien: true, four: false,
+    prep: 15, cuisson: 25, congelable: true, conservation: { frigo: 3, congel: 3 },
     ingredients: [
-      { nom: "potiron", qte: 1, unite: "kg" },
-      { nom: "pomme de terre", qte: 2, unite: "pièces" },
-      { nom: "oignon", qte: 1, unite: "pièce" },
-      { nom: "fromage frais", qte: 100, unite: "g" },
+      I("potiron", 1, "kg"), I("pommes de terre", 2, "pièces"), I("oignon", 1, "pièce"),
+      I("fromage frais", 100, "g"),
     ],
     etapes: [
       "Faire cuire potiron, pomme de terre et oignon dans 1,2 L d'eau 25 minutes.",
@@ -154,22 +546,106 @@ const RECETTES = [
     ],
   },
   {
-    id: "omelette-four-legumes",
-    nom: "Frittata aux légumes",
-    base: 4,
-    allergenes: ["oeufs", "lactose"],
-    groupes: ["enfant", "ado", "adulte"],
-    congelable: false,
+    id: "soupe-poireaux-pdt",
+    nom: "Soupe poireaux et pommes de terre",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 15, cuisson: 30, congelable: true, conservation: { frigo: 3, congel: 3 },
     ingredients: [
-      { nom: "oeufs", qte: 8, unite: "pièces" },
-      { nom: "poivron", qte: 1, unite: "pièce" },
-      { nom: "épinards", qte: 200, unite: "g" },
-      { nom: "oignon", qte: 1, unite: "pièce" },
-      { nom: "fromage râpé", qte: 60, unite: "g" },
+      I("poireau", 4, "pièces"), I("pommes de terre", 600, "g"), I("huile d'olive", 1, "c. à soupe"),
     ],
     etapes: [
-      "Faire revenir oignon, poivron et épinards.",
-      "Battre les œufs avec le fromage, verser sur les légumes et cuire à couvert 10 minutes.",
+      "Faire suer les poireaux émincés dans l'huile.",
+      "Ajouter les pommes de terre en dés et 1,2 L d'eau, cuire 25 minutes, mixer.",
+    ],
+  },
+  {
+    id: "soupe-carottes-coriandre",
+    nom: "Soupe de carottes à la coriandre",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 10, cuisson: 25, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("carotte", 8, "pièces"), I("oignon", 1, "pièce"), I("pommes de terre", 1, "pièce"),
+      I("coriandre", 1, "botte"), I("huile d'olive", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Faire revenir l'oignon, ajouter carottes et pomme de terre en dés et 1,2 L d'eau.",
+      "Cuire 25 minutes, ajouter la coriandre, mixer.",
+    ],
+  },
+  {
+    id: "soupe-legumes-verts",
+    nom: "Soupe de légumes verts",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 15, cuisson: 20, congelable: true, conservation: { frigo: 3, congel: 3 },
+    ingredients: [
+      I("courgette", 3, "pièces"), I("épinards", 200, "g"), I("pommes de terre", 2, "pièces"),
+      I("petits pois", 200, "g"), I("oignon", 1, "pièce"),
+    ],
+    etapes: [
+      "Cuire courgettes, pommes de terre, oignon et petits pois dans 1 L d'eau 15 minutes.",
+      "Ajouter les épinards 3 minutes, mixer.",
+    ],
+  },
+  {
+    id: "minestrone",
+    nom: "Minestrone de légumes et petites pâtes",
+    base: 6, allergenes: ["gluten", "celeri"], groupes: TOUS, vegetarien: true, four: false,
+    prep: 20, cuisson: 30, congelable: true, conservation: { frigo: 4, congel: 3 },
+    ingredients: [
+      I("carotte", 3, "pièces"), I("courgette", 2, "pièces"), I("céleri branche", 3, "pièces"),
+      I("tomates concassées", 1, "boîte"), I("haricots blancs en conserve", 1, "boîte"),
+      I("petites pâtes", 120, "g"), I("oignon", 1, "pièce"),
+    ],
+    etapes: [
+      "Faire revenir oignon, carotte et céleri en dés.",
+      "Ajouter tomates, courgette et 1,2 L d'eau, cuire 20 minutes.",
+      "Ajouter haricots et pâtes, cuire 8 minutes.",
+    ],
+  },
+
+  // ---------- Petit-déjeuner et goûter ----------
+  {
+    id: "porridge-pommes",
+    type: "petit-dej",
+    nom: "Porridge d'avoine aux pommes",
+    base: 4, allergenes: ["gluten", "lactose"], groupes: TOUS, vegetarien: true, four: false,
+    prep: 5, cuisson: 10, congelable: false, conservation: { frigo: 3, congel: 0 },
+    ingredients: [
+      I("flocons d'avoine", 200, "g"), I("lait", 80, "cl"), I("pomme", 4, "pièces"),
+      I("cannelle", 1, "c. à café"),
+    ],
+    etapes: [
+      "Cuire les flocons dans le lait 5 minutes en remuant.",
+      "Ajouter les pommes en dés et la cannelle, cuire 5 minutes. Se réchauffe avec un peu de lait.",
+    ],
+  },
+  {
+    id: "compote-pommes-poires",
+    type: "gouter",
+    nom: "Compote maison pommes-poires",
+    base: 6, allergenes: [], groupes: TOUS, vegetarien: true, four: false,
+    prep: 15, cuisson: 20, congelable: true, conservation: { frigo: 4, congel: 6 },
+    ingredients: [
+      I("pomme", 6, "pièces"), I("poire", 4, "pièces"), I("cannelle", 1, "c. à café"),
+    ],
+    etapes: [
+      "Éplucher et couper les fruits.",
+      "Cuire à couvert avec un fond d'eau 20 minutes, écraser ou mixer. Sans sucre ajouté.",
+    ],
+  },
+  {
+    id: "energy-balls-dattes",
+    type: "gouter",
+    nom: "Boules d'énergie dattes et amandes",
+    base: 6, allergenes: ["fruits_a_coque"], groupes: GRANDS, vegetarien: true, four: false,
+    prep: 15, cuisson: 0, congelable: true, conservation: { frigo: 7, congel: 3 },
+    ingredients: [
+      I("dattes", 200, "g"), I("amandes en poudre", 100, "g"), I("noix de coco râpée", 30, "g"),
+      I("cacao non sucré", 1, "c. à soupe"),
+    ],
+    etapes: [
+      "Mixer les dattes dénoyautées avec la poudre d'amandes et le cacao.",
+      "Former des boules, les rouler dans la noix de coco. Conserver au frais.",
     ],
   },
 ];

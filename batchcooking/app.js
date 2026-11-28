@@ -185,15 +185,31 @@ function supprimerIngredient(index) {
 
 // ---------- Plan ----------
 
-// Recettes compatibles avec les intolérances et les âges du foyer.
-function recettesCompatibles() {
-  const allergiesFoyer = new Set(etat.membres.flatMap((m) => m.allergies));
-  const groupesFoyer = new Set(etat.membres.map((m) => m.age));
+// Recettes compatibles avec les intolérances et les âges du foyer, puis avec les filtres choisis.
+// filtres : { type: "repas" | "petit-dej" | "gouter" | "tout", vegetarien, sansFour, tempsMax (minutes, 0 = illimité) }
+function recettesCompatibles(membres = etat.membres, filtres = {}) {
+  const allergiesFoyer = new Set(membres.flatMap((m) => m.allergies));
+  const groupesFoyer = new Set(membres.map((m) => m.age));
+  const type = filtres.type || "repas";
 
   return RECETTES.filter((r) => {
     if (r.allergenes.some((a) => allergiesFoyer.has(a))) return false;
-    return [...groupesFoyer].every((g) => r.groupes.includes(g));
+    if (![...groupesFoyer].every((g) => r.groupes.includes(g))) return false;
+    if (type !== "tout" && (r.type || "repas") !== type) return false;
+    if (filtres.vegetarien && !r.vegetarien) return false;
+    if (filtres.sansFour && r.four) return false;
+    if (filtres.tempsMax && r.prep + r.cuisson > filtres.tempsMax) return false;
+    return true;
   });
+}
+
+function lireFiltres() {
+  return {
+    type: document.getElementById("filtre-type").value,
+    vegetarien: document.getElementById("filtre-vegetarien").checked,
+    sansFour: document.getElementById("filtre-sans-four").checked,
+    tempsMax: Number(document.getElementById("filtre-temps").value),
+  };
 }
 
 // Pour chaque recette : ingrédients disponibles, manquants et score.
@@ -215,9 +231,9 @@ function genererPlan() {
     return;
   }
 
-  const compatibles = recettesCompatibles();
+  const compatibles = recettesCompatibles(etat.membres, lireFiltres());
   if (compatibles.length === 0) {
-    zone.innerHTML = '<p class="alerte">Aucune recette ne convient à toutes les intolérances et tranches d’âge du foyer. Il faudra enrichir la base de recettes.</p>';
+    zone.innerHTML = '<p class="alerte">Aucune recette ne convient à toutes les intolérances, tranches d’âge et filtres choisis. Essayez d’assouplir les filtres.</p>';
     return;
   }
 
@@ -240,12 +256,12 @@ function genererPlan() {
     const coefficient = portionsNecessaires / r.base;
 
     for (const ing of analyse.manquants) {
-      const cle = normaliser(ing.nom);
-      const existant = liste.get(cle);
+      const cle = normaliser(ing.nom) + "|" + ing.unite;
       const qte = ing.qte * coefficient;
-      if (existant && existant.unite === ing.unite) {
+      const existant = liste.get(cle);
+      if (existant) {
         existant.qte += qte;
-      } else if (!existant) {
+      } else {
         liste.set(cle, { nom: ing.nom, qte, unite: ing.unite });
       }
     }
@@ -258,7 +274,9 @@ function genererPlan() {
 
     const etapes = r.etapes.map((e) => `<li>${echapper(e)}</li>`).join("");
     const notes = [];
-    if (r.congelable) notes.push("Congelable : portionner et congeler dès refroidissement.");
+    notes.push(r.congelable
+      ? `Conservation : ${r.conservation.frigo} jours au frigo, ${r.conservation.congel} mois au congélateur (portionner et congeler dès refroidissement).`
+      : `Conservation : ${r.conservation.frigo} jour(s) au frigo. Ne pas congeler.`);
     if (etat.membres.some((m) => m.age === "bebe")) {
       notes.push("Bébé dans le foyer : prélever sa portion avant l'assaisonnement et la mixer si besoin.");
     }
@@ -266,6 +284,7 @@ function genererPlan() {
     return `
       <div class="recette">
         <h3>${echapper(r.nom)}</h3>
+        <div class="discret">${r.vegetarien ? "Végétarien · " : ""}Préparation ${r.prep} min${r.cuisson ? " · cuisson " + r.cuisson + " min" : " · sans cuisson"}${r.four ? " · four" : ""}</div>
         <div class="discret">Pour ${formaterQuantite(portionsNecessaires)} portions · couvre ${repasCouverts} repas · ${formaterQuantite(analyse.score * 100)} % des ingrédients déjà au frigo</div>
         <ul class="ingredients">${lignes}</ul>
         <ol>${etapes}</ol>
@@ -317,4 +336,6 @@ function init() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", init);
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", init);
+}
